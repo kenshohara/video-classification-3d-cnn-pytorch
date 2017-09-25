@@ -93,3 +93,6 @@ if __name__ == '__main__':
         dst_file_path = os.path.join(dst_directory_path, video_path.split('/')[-1])
         subprocess.call('ffmpeg -y -r {} -i tmp/image_%05d_pred.jpg -b:v 1000k {}'.format(fps, dst_file_path),
                         shell=True)
+
+        if os.path.exists('tmp'):
+            subprocess.call('rm -rf tmp', shell=True)
