@@ -24,11 +24,19 @@ cd ./ffmpeg-3.3.3-64bit-static/; sudo cp ffmpeg ffprobe /usr/local/bin;
 * Download the [pretrained model](https://github.com/kenshohara/3D-ResNets-PyTorch/releases).  
 
 ## Usage
+Assume input video files are located in ```./videos```.
+
+To calculate class scores for each 16 frames, use ```--mode score```.
 ```
-python main.py --input ./input --output ./output.json --model ./resnet-34-kinetics.pth
+python main.py --input ./input --video_root ./videos --output ./output.json --model ./resnet-34-kinetics.pth --mode score
+```
+To visualize the classification results, use ```generate_result_video/generate_result_video.py```.
+
+To calculate video features for each 16 frames, use ```--mode feature```.
+```
+python main.py --input ./input --video_root ./videos --output ./output.json --model ./resnet-34-kinetics.pth --mode feature
 ```
 
-To visualize the classification results, use ```generate_result_video/generate_result_video.py```.
 
 ## Citation
 If you use this code, please cite the following:
