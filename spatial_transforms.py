@@ -37,9 +37,6 @@ class ToTensor(object):
     [0, 255] to a torch.FloatTensor of shape (C x H x W) in the range [0.0, 1.0].
     """
 
-    def __init__(self, norm_value=255):
-        self.norm_value = norm_value
-
     def __call__(self, pic):
         """
         Args:
@@ -51,7 +48,7 @@ class ToTensor(object):
             # handle numpy array
             img = torch.from_numpy(pic.transpose((2, 0, 1)))
             # backward compatibility
-            return img.float().div(self.norm_value)
+            return img.float()
 
         if accimage is not None and isinstance(pic, accimage.Image):
             nppic = np.zeros([pic.channels, pic.height, pic.width], dtype=np.float32)
@@ -77,7 +74,7 @@ class ToTensor(object):
         # yikes, this transpose takes 80% of the loading time/CPU
         img = img.transpose(0, 1).transpose(0, 2).contiguous()
         if isinstance(img, torch.ByteTensor):
-            return img.float().div(self.norm_value)
+            return img.float()
         else:
             return img
 

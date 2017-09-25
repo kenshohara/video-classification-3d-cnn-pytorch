@@ -4,10 +4,7 @@ from PIL import Image
 import os
 import math
 import functools
-import json
 import copy
-
-from utils import load_value_file
 
 
 def pil_loader(path):
@@ -85,7 +82,7 @@ def get_video_names_and_annotations(data, subset):
 def make_dataset(video_path, sample_duration):
     dataset = []
 
-    n_frames = len(os.listdir(video_dir))
+    n_frames = len(os.listdir(video_path))
 
     begin_t = 1
     end_t = n_frames
@@ -93,13 +90,13 @@ def make_dataset(video_path, sample_duration):
         'video': video_path,
         'segment': [begin_t, end_t],
         'n_frames': n_frames,
-        'video_id': video_names[i][:-14].split('/')[1]
     }
 
     step = sample_duration
     for i in range(1, (n_frames - sample_duration + 1), step):
         sample_i = copy.deepcopy(sample)
         sample_i['frame_indices'] = list(range(i, i + sample_duration))
+        sample_i['segment'] = torch.Tensor([i, i + sample_duration - 1])
         dataset.append(sample_i)
 
     return dataset
@@ -113,7 +110,6 @@ class Video(data.Dataset):
 
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
-        self.target_transform = target_transform
         self.loader = get_loader()
 
     def __getitem__(self, index):
@@ -130,7 +126,6 @@ class Video(data.Dataset):
             frame_indices = self.temporal_transform(frame_indices)
         clip = self.loader(path, frame_indices)
         if self.spatial_transform is not None:
-            self.spatial_transform.randomize_parameters()
             clip = [self.spatial_transform(img) for img in clip]
         clip = torch.stack(clip, 0).permute(1, 0, 2, 3)
 

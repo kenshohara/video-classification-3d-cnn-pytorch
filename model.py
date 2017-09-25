@@ -5,9 +5,9 @@ from models import resnet
 
 
 def generate_model(opt):
-    assert opt.model in ['resnet']
+    assert opt.model_name in ['resnet']
 
-    if opt.model == 'resnet':
+    if opt.model_name == 'resnet':
         assert opt.model_depth in [18, 34, 50, 101]
 
         if opt.model_depth == 18:

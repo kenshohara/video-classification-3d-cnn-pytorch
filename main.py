@@ -13,15 +13,15 @@ from classify import classify_video
 
 if __name__=="__main__":
     opt = parse_opts()
-    opt.mean = get_mean(opt.norm_value)
-    opt.arch = '{}-{}'.format(opt.model, opt.model_depth)
+    opt.mean = get_mean()
+    opt.arch = '{}-{}'.format(opt.model_name, opt.model_depth)
     opt.sample_size = 112
     opt.sample_duration = 16
     opt.n_classes = 400
 
     model = generate_model(opt)
-    print('loading checkpoint {}'.format(opt.resume_path))
-    model_data = torch.load(opt.resume_path)
+    print('loading model {}'.format(opt.model))
+    model_data = torch.load(opt.model)
     assert opt.arch == model_data['arch']
     model.load_state_dict(model_data['state_dict'])
     model.eval()
@@ -52,12 +52,12 @@ if __name__=="__main__":
             subprocess.call('mkdir tmp', shell=True)
             subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(input_file), shell=True)
 
-            result = classify_video('tmp', input_file, class_names, opt)
+            result = classify_video('tmp', input_file, class_names, model, opt)
             outputs.append(result)
 
             subprocess.call('rm -rf tmp', shell=True)
         else:
-            print('%s does not exist'.format(input_file))
+            print('{} does not exist'.format(input_file))
 
     if os.path.exists('tmp'):
         subprocess.call('rm -rf tmp', shell=True)
