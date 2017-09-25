@@ -6,6 +6,7 @@ def parse_opts():
     parser.add_argument('--video_root', default='', type=str, help='Root path of input videos')
     parser.add_argument('--model', default='', type=str, help='Model file path')
     parser.add_argument('--output', default='output.json', type=str, help='Output file path')
+    parser.add_argument('--mode', default='score', type=str, help='Mode (score | feature). score outputs class scores. feature outputs features (after global average pooling).')
     parser.add_argument('--batch_size', default=32, type=int, help='Batch Size')
     parser.add_argument('--n_threads', default=4, type=int, help='Number of threads for multi-thread loading')
     parser.add_argument('--model_name', default='resnet', type=str, help='Currently only support resnet')
