@@ -6,6 +6,8 @@ from spatial_transforms import (Compose, Normalize, Scale, CenterCrop, ToTensor)
 from temporal_transforms import LoopPadding
 
 def classify_video(video_dir, video_name, class_names, model, opt):
+    assert opt.mode in ['score', 'feature']
+
     spatial_transform = Compose([Scale(opt.sample_size),
                                  CenterCrop(opt.sample_size),
                                  ToTensor(),
@@ -37,9 +39,14 @@ def classify_video(video_dir, video_name, class_names, model, opt):
     for i in range(video_outputs.size(0)):
         clip_results = {
             'segment': video_segments[i].tolist(),
-            'label': class_names[max_indices[i]],
-            'scores': video_outputs[i].tolist()
         }
+
+        if opt.mode == 'score':
+            clip_results['label'] = class_names[max_indices[i]]
+            clip_results['scores'] = video_outputs[i].tolist()
+        elif opt.mode == 'feature':
+            clip_results['features'] = video_outputs[i].tolist()
+
         results['clips'].append(clip_results)
 
     return results
