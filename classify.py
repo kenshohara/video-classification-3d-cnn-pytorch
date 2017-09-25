@@ -36,7 +36,7 @@ def classify_video(video_dir, video_name, class_names, model, opt):
     _, max_indices = video_outputs.max(dim=1)
     for i in range(video_outputs.size(0)):
         clip_results = {
-            'segment': video_segments[i],
+            'segment': video_segments[i].tolist(),
             'label': class_names[max_indices[i]],
             'scores': video_outputs[i].tolist()
         }
