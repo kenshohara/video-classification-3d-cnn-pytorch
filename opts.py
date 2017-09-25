@@ -3,6 +3,7 @@ import argparse
 def parse_opts():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', default='input', type=str, help='Input file path')
+    parser.add_argument('--video_root', default='', type=str, help='Root path of input videos')
     parser.add_argument('--model', default='', type=str, help='Model file path')
     parser.add_argument('--output', default='output.json', type=str, help='Output file path')
     parser.add_argument('--batch_size', default=32, type=int, help='Batch Size')

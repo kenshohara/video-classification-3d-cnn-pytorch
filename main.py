@@ -47,10 +47,12 @@ if __name__=="__main__":
 
     outputs = []
     for input_file in input_files:
-        if os.path.exists(input_file):
-            print(input_file)
+        video_path = os.path.join(opt.video_root, input_file)
+        if os.path.exists(video_path):
+            print(video_path)
             subprocess.call('mkdir tmp', shell=True)
-            subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(input_file), shell=True)
+            subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(video_path),
+                            shell=True)
 
             result = classify_video('tmp', input_file, class_names, model, opt)
             outputs.append(result)

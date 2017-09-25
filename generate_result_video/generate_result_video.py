@@ -26,11 +26,12 @@ def get_fps(video_file_path, frames_directory_path):
 
 if __name__ == '__main__':
     result_json_path = sys.argv[1]
-    dst_directory_path = sys.argv[2]
+    video_root_path = sys.argv[2]
+    dst_directory_path = sys.argv[3]
     if not os.path.exists(dst_directory_path):
         subprocess.call('mkdir -p {}'.format(dst_directory_path), shell=True)
-    class_name_path = sys.argv[3]
-    temporal_unit = int(sys.argv[4])
+    class_name_path = sys.argv[4]
+    temporal_unit = int(sys.argv[5])
 
     with open(result_json_path, 'r') as f:
         results = json.load(f)
@@ -41,7 +42,7 @@ if __name__ == '__main__':
             class_names.append(row[:-1])
 
     for index in range(len(results)):
-        video_path = results[index]['video']
+        video_path = os.path.join(video_root_path, results[index]['video'])
         print(video_path)
 
         clips = results[index]['clips']
