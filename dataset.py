@@ -82,80 +82,34 @@ def get_video_names_and_annotations(data, subset):
     return video_names, annotations
 
 
-def make_dataset(root_path, annotation_path, subset,
-                 n_samples_for_each_video, sample_duration):
-    data = load_annotation_data(annotation_path)
-    video_names, annotations = get_video_names_and_annotations(data, subset)
-    class_to_idx = get_class_labels(data)
-    idx_to_class = {}
-    for name, label in class_to_idx.items():
-        idx_to_class[label] = name
-
+def make_dataset(video_path, sample_duration):
     dataset = []
-    for i in range(len(video_names)):
-        if i % 1000 == 0:
-            print('dataset loading [{}/{}]'.format(i, len(video_names)))
 
-        video_path = os.path.join(root_path, video_names[i])
-        if not os.path.exists(video_path):
-            continue
+    n_frames = len(os.listdir(video_dir))
 
-        n_frames_file_path = os.path.join(video_path, 'n_frames')
-        n_frames = int(load_value_file(n_frames_file_path))
-        if n_frames <= 0:
-            continue
+    begin_t = 1
+    end_t = n_frames
+    sample = {
+        'video': video_path,
+        'segment': [begin_t, end_t],
+        'n_frames': n_frames,
+        'video_id': video_names[i][:-14].split('/')[1]
+    }
 
-        begin_t = 1
-        end_t = n_frames
-        sample = {
-            'video': video_path,
-            'segment': [begin_t, end_t],
-            'n_frames': n_frames,
-            'video_id': video_names[i][:-14].split('/')[1]
-        }
-        if len(annotations) != 0:
-            sample['label'] = class_to_idx[annotations[i]['label']]
-        else:
-            sample['label'] = -1
+    step = sample_duration
+    for i in range(1, (n_frames - sample_duration + 1), step):
+        sample_i = copy.deepcopy(sample)
+        sample_i['frame_indices'] = list(range(i, i + sample_duration))
+        dataset.append(sample_i)
 
-        if n_samples_for_each_video == 1:
-            sample['frame_indices'] = list(range(1, n_frames + 1))
-            dataset.append(sample)
-        else:
-            if n_samples_for_each_video > 1:
-                step = max(1, math.ceil((n_frames - 1 - sample_duration) / (n_samples_for_each_video - 1)))
-            else:
-                step = sample_duration
-            for j in range(1, (n_frames - sample_duration + 1), step):
-                sample_j = copy.deepcopy(sample)
-                sample_j['frame_indices'] = list(range(j, j + sample_duration))
-                dataset.append(sample_j)
-
-    return dataset, idx_to_class
+    return dataset
 
 
-class Kinetics(data.Dataset):
-    """
-    Args:
-        root (string): Root directory path.
-        spatial_transform (callable, optional): A function/transform that  takes in an PIL image
-            and returns a transformed version. E.g, ``transforms.RandomCrop``
-        temporal_transform (callable, optional): A function/transform that  takes in a list of frame indices
-            and returns a transformed version
-        target_transform (callable, optional): A function/transform that takes in the
-            target and transforms it.
-        loader (callable, optional): A function to load an video given its path and frame indices.
-     Attributes:
-        classes (list): List of the class names.
-        class_to_idx (dict): Dict with items (class_name, class_index).
-        imgs (list): List of (image path, class_index) tuples
-    """
-
-    def __init__(self, root_path, annotation_path, subset, n_samples_for_each_video=1,
-                 spatial_transform=None, temporal_transform=None, target_transform=None,
+class Video(data.Dataset):
+    def __init__(self, video_path,
+                 spatial_transform=None, temporal_transform=None,
                  sample_duration=16, get_loader=get_default_video_loader):
-        self.data, self.class_names = make_dataset(root_path, annotation_path, subset,
-                                                   n_samples_for_each_video, sample_duration)
+        self.data = make_dataset(video_path, sample_duration)
 
         self.spatial_transform = spatial_transform
         self.temporal_transform = temporal_transform
@@ -180,9 +134,7 @@ class Kinetics(data.Dataset):
             clip = [self.spatial_transform(img) for img in clip]
         clip = torch.stack(clip, 0).permute(1, 0, 2, 3)
 
-        target = self.data[index]
-        if self.target_transform is not None:
-            target = self.target_transform(target)
+        target = self.data[index]['segment']
 
         return clip, target
 

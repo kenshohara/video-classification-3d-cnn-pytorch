@@ -10,8 +10,6 @@ from opts import parse_opts
 from model import generate_model
 from mean import get_mean
 from classify import classify_video
-from spatial_transforms import (Compose, Normalize, Scale, CenterCrop, ToTensor)
-from temporal_transforms import LoopPadding, TemporalRandomCrop
 
 if __name__=="__main__":
     opt = parse_opts()
@@ -54,7 +52,7 @@ if __name__=="__main__":
             subprocess.call('mkdir tmp', shell=True)
             subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(input_file), shell=True)
 
-            result = classify_video('tmp', input_file, class_names)
+            result = classify_video('tmp', input_file, class_names, opt)
             outputs.append(result)
 
             subprocess.call('rm -rf tmp', shell=True)
