@@ -71,10 +71,12 @@ if __name__ == '__main__':
 
         for i in range(len(unit_classes)):
             for j in range(unit_segments[i][0], unit_segments[i][1] + 1):
-                image = Image.open('tmp/image_{:05}.jpg'.format(j)).convert('RGBA')
+                image = Image.open('tmp/image_{:05}.jpg'.format(j)).convert('RGB')
                 min_length = min(image.size)
                 font_size = int(min_length * 0.05)
-                font = ImageFont.truetype('SourceSansPro-Regular.ttf', font_size)
+                font = ImageFont.truetype(os.path.join(os.path.dirname(__file__),
+                                                       'SourceSansPro-Regular.ttf'),
+                                          font_size)
                 d = ImageDraw.Draw(image)
                 textsize = d.textsize(unit_classes[i], font=font)
                 x = int(font_size * 0.5)
@@ -83,9 +85,9 @@ if __name__ == '__main__':
                 y_offset = y
                 rect_position = (x, y, x + textsize[0] + x_offset * 2,
                                  y + textsize[1] + y_offset * 2)
-                d.rectangle(rect_position, fill=(30, 30, 30, 255))
+                d.rectangle(rect_position, fill=(30, 30, 30))
                 d.text((x + x_offset, y + y_offset), unit_classes[i],
-                       font=font, fill=(235, 235, 235, 255))
+                       font=font, fill=(235, 235, 235))
                 image.save('tmp/image_{:05}_pred.jpg'.format(j))
 
         dst_file_path = os.path.join(dst_directory_path, video_path.split('/')[-1])
