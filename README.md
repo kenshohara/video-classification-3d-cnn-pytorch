@@ -41,11 +41,11 @@ python main.py --input ./input --video_root ./videos --output ./output.json --mo
 ## Citation
 If you use this code, please cite the following:
 ```
-@article{hara3dresnets
-  author={Kensho Hara and Hirokatsu Kataoka and Yutaka Satoh}
-  title={Learning Spatio-Temporal Features with 3D Residual Networks for Action Recognition}
-  journal={arXiv preprint}
-  volume={arXiv:1708.07632}
-  year={2017}
+@article{hara3dcnns,
+  author={Kensho Hara and Hirokatsu Kataoka and Yutaka Satoh},
+  title={Can Spatiotemporal 3D CNNs Retrace the History of 2D CNNs and ImageNet?},
+  journal={arXiv preprint},
+  volume={arXiv:1711.09577},
+  year={2017},
 }
 ```
