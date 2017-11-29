@@ -132,7 +132,7 @@ class ResNeXt(nn.Module):
         x = self.avgpool(x)
 
         x = x.view(x.size(0), -1)
-        if last_fc:
+        if self.last_fc:
             x = self.fc(x)
 
         return x
