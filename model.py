@@ -11,17 +11,7 @@ def generate_model(opt):
     elif opt.mode == 'feature':
         last_fc = False
 
-
-    if opt.model_depth == 18:
-        model = resnet.resnet18(num_classes=opt.n_classes, shortcut_type=opt.resnet_shortcut, last_fc=last_fc)
-    elif opt.model_depth == 34:
-        model = resnet.resnet34(num_classes=opt.n_classes, shortcut_type=opt.resnet_shortcut, last_fc=last_fc)
-    elif opt.model_depth == 50:
-        model = resnet.resnet50(num_classes=opt.n_classes, shortcut_type=opt.resnet_shortcut, last_fc=last_fc)
-    elif opt.model_depth == 101:
-        model = resnet.resnet101(num_classes=opt.n_classes, shortcut_type=opt.resnet_shortcut, last_fc=last_fc)
-
-    assert opt.model in ['resnet', 'preresnet', 'wideresnet', 'resnext', 'densenet']
+    assert opt.model_name in ['resnet', 'preresnet', 'wideresnet', 'resnext', 'densenet']
 
     if opt.model_name == 'resnet':
         assert opt.model_depth in [10, 18, 34, 50, 101, 152, 200]
