@@ -21,7 +21,8 @@ cd ./ffmpeg-3.3.3-64bit-static/; sudo cp ffmpeg ffprobe /usr/local/bin;
 
 ## Preparation
 * Download this code.
-* Download the [pretrained model](https://github.com/kenshohara/3D-ResNets-PyTorch/releases).  
+* Download the [pretrained model](https://drive.google.com/drive/folders/14KRBqT8ySfPtFSuLsFS2U4I-ihTDs0Y9?usp=sharing).  
+  * ResNeXt-101 achieved the best performance in our experiments. (See [paper](https://arxiv.org/abs/1711.09577) in details.)
 
 ## Usage
 Assume input video files are located in ```./videos```.
