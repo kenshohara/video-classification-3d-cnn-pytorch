@@ -26,7 +26,8 @@ def generate_model(opt):
                                     last_fc=last_fc)
         elif opt.model_depth == 34:
             model = resnet.resnet34(num_classes=opt.n_classes, shortcut_type=opt.resnet_shortcut,
-                                    sample_size=opt.sample_size, sample_duration=opt.sample_duration)
+                                    sample_size=opt.sample_size, sample_duration=opt.sample_duration,
+                                    last_fc=last_fc)
         elif opt.model_depth == 50:
             model = resnet.resnet50(num_classes=opt.n_classes, shortcut_type=opt.resnet_shortcut,
                                     sample_size=opt.sample_size, sample_duration=opt.sample_duration,
