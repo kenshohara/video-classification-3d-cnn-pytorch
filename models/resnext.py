@@ -1,3 +1,4 @@
+from __future__ import division
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -83,8 +84,8 @@ class ResNeXt(nn.Module):
         self.layer2 = self._make_layer(block, 256, layers[1], shortcut_type, cardinality, stride=2)
         self.layer3 = self._make_layer(block, 512, layers[2], shortcut_type, cardinality, stride=2)
         self.layer4 = self._make_layer(block, 1024, layers[3], shortcut_type, cardinality, stride=2)
-        last_duration = math.ceil(sample_duration / 16)
-        last_size = math.ceil(sample_size / 32)
+        last_duration = int(math.ceil(sample_duration / 16))
+        last_size = int(math.ceil(sample_size / 32))
         self.avgpool = nn.AvgPool3d((last_duration, last_size, last_size), stride=1)
         self.fc = nn.Linear(cardinality * 32 * block.expansion, num_classes)
 
