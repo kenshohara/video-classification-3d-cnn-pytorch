@@ -221,13 +221,13 @@ def resnet101(**kwargs):
     return model
 
 def resnet152(**kwargs):
-    """Constructs a ResNet-101 model.
+    """Constructs a ResNet-152 model.
     """
     model = ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
     return model
 
 def resnet200(**kwargs):
-    """Constructs a ResNet-101 model.
+    """Constructs a ResNet-200 model.
     """
     model = ResNet(Bottleneck, [3, 24, 36, 3], **kwargs)
     return model
