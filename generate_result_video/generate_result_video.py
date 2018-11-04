@@ -7,8 +7,11 @@ from PIL import Image, ImageDraw, ImageFont
 
 
 def get_fps(video_file_path, frames_directory_path):
-    p = subprocess.Popen('ffprobe {}'.format(video_file_path),
-                         shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(
+        'ffprobe {}'.format(video_file_path),
+        shell=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE)
     _, res = p.communicate()
     res = res.decode('utf-8')
 
@@ -59,25 +62,29 @@ if __name__ == '__main__':
                 scores += np.array(clips[i]['scores'])
             scores /= n_elements
             unit_classes.append(class_names[np.argmax(scores)])
-            unit_segments.append([clips[i]['segment'][0],
-                                  clips[i + n_elements - 1]['segment'][1]])
+            unit_segments.append([
+                clips[i]['segment'][0], clips[i + n_elements - 1]['segment'][1]
+            ])
 
         if os.path.exists('tmp'):
             subprocess.call('rm -rf tmp', shell=True)
         subprocess.call('mkdir tmp', shell=True)
 
-        subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(video_path), shell=True)
+        subprocess.call(
+            'ffmpeg -i {} tmp/image_%06d.jpg'.format(video_path), shell=True)
 
         fps = get_fps(video_path, 'tmp')
 
         for i in range(len(unit_classes)):
             for j in range(unit_segments[i][0], unit_segments[i][1] + 1):
-                image = Image.open('tmp/image_{:05}.jpg'.format(j)).convert('RGB')
+                image = Image.open(
+                    'tmp/image_{:06}.jpg'.format(j)).convert('RGB')
                 min_length = min(image.size)
                 font_size = int(min_length * 0.05)
-                font = ImageFont.truetype(os.path.join(os.path.dirname(__file__),
-                                                       'SourceSansPro-Regular.ttf'),
-                                          font_size)
+                font = ImageFont.truetype(
+                    os.path.join(
+                        os.path.dirname(__file__),
+                        'SourceSansPro-Regular.ttf'), font_size)
                 d = ImageDraw.Draw(image)
                 textsize = d.textsize(unit_classes[i], font=font)
                 x = int(font_size * 0.5)
@@ -87,13 +94,18 @@ if __name__ == '__main__':
                 rect_position = (x, y, x + textsize[0] + x_offset * 2,
                                  y + textsize[1] + y_offset * 2)
                 d.rectangle(rect_position, fill=(30, 30, 30))
-                d.text((x + x_offset, y + y_offset), unit_classes[i],
-                       font=font, fill=(235, 235, 235))
-                image.save('tmp/image_{:05}_pred.jpg'.format(j))
+                d.text((x + x_offset, y + y_offset),
+                       unit_classes[i],
+                       font=font,
+                       fill=(235, 235, 235))
+                image.save('tmp/image_{:06}_pred.jpg'.format(j))
 
-        dst_file_path = os.path.join(dst_directory_path, video_path.split('/')[-1])
-        subprocess.call('ffmpeg -y -r {} -i tmp/image_%05d_pred.jpg -b:v 1000k {}'.format(fps, dst_file_path),
-                        shell=True)
+        dst_file_path = os.path.join(dst_directory_path,
+                                     video_path.split('/')[-1])
+        subprocess.call(
+            'ffmpeg -y -r {} -i tmp/image_%06d_pred.jpg -b:v 1000k {}'.format(
+                fps, dst_file_path),
+            shell=True)
 
         if os.path.exists('tmp'):
             subprocess.call('rm -rf tmp', shell=True)

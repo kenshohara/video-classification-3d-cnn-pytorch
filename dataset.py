@@ -34,7 +34,7 @@ def get_default_image_loader():
 def video_loader(video_dir_path, frame_indices, image_loader):
     video = []
     for i in frame_indices:
-        image_path = os.path.join(video_dir_path, 'image_{:05d}.jpg'.format(i))
+        image_path = os.path.join(video_dir_path, 'image_{:06d}.jpg'.format(i))
         if os.path.exists(image_path):
             video.append(image_loader(image_path))
         else:
@@ -103,9 +103,12 @@ def make_dataset(video_path, sample_duration):
 
 
 class Video(data.Dataset):
-    def __init__(self, video_path,
-                 spatial_transform=None, temporal_transform=None,
-                 sample_duration=16, get_loader=get_default_video_loader):
+    def __init__(self,
+                 video_path,
+                 spatial_transform=None,
+                 temporal_transform=None,
+                 sample_duration=16,
+                 get_loader=get_default_video_loader):
         self.data = make_dataset(video_path, sample_duration)
 
         self.spatial_transform = spatial_transform
