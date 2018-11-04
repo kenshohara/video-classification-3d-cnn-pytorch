@@ -4,6 +4,7 @@ import json
 import subprocess
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+from tqdm import tqdm
 
 
 def get_fps(video_file_path, frames_directory_path):
@@ -75,8 +76,8 @@ if __name__ == '__main__':
 
         fps = get_fps(video_path, 'tmp')
 
-        for i in range(len(unit_classes)):
-            for j in range(unit_segments[i][0], unit_segments[i][1] + 1):
+        for i in tqdm(range(len(unit_classes))):
+            for j in tqdm(range(unit_segments[i][0], unit_segments[i][1] + 1)):
                 image = Image.open(
                     'tmp/image_{:06}.jpg'.format(j)).convert('RGB')
                 min_length = min(image.size)
