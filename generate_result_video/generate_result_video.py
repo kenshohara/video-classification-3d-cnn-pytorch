@@ -7,6 +7,7 @@ from PIL import Image, ImageDraw, ImageFont
 from tqdm import tqdm
 import time
 import multiprocessing
+from itertools import repeat
 
 
 def get_fps(video_file_path, frames_directory_path):
@@ -30,27 +31,30 @@ def get_fps(video_file_path, frames_directory_path):
     return fps
 
 
-def generate_result_image(frame_num, unit_class_num):
-    image = Image.open('tmp/image_{:06}.jpg'.format(frame_num)).convert('RGB')
-    min_length = min(image.size)
-    font_size = int(min_length * 0.05)
-    font = ImageFont.truetype(
-        os.path.join(os.path.dirname(__file__), 'SourceSansPro-Regular.ttf'),
-        font_size)
-    d = ImageDraw.Draw(image)
-    textsize = d.textsize(unit_classes[unit_class_num], font=font)
-    x = int(font_size * 0.5)
-    y = int(font_size * 0.25)
-    x_offset = x
-    y_offset = y
-    rect_position = (x, y, x + textsize[0] + x_offset * 2,
-                     y + textsize[1] + y_offset * 2)
-    d.rectangle(rect_position, fill=(30, 30, 30))
-    d.text((x + x_offset, y + y_offset),
-           unit_classes[i],
-           font=font,
-           fill=(235, 235, 235))
-    return image.save('tmp/image_{:06}_pred.jpg'.format(frame_num))
+def generate_result_images(frame_nums, predicted_class):
+    for frame_num in frame_nums:
+        image = Image.open(
+            'tmp/image_{:06}.jpg'.format(frame_num)).convert('RGB')
+        min_length = min(image.size)
+        font_size = int(min_length * 0.05)
+        font = ImageFont.truetype(
+            os.path.join(
+                os.path.dirname(__file__), 'SourceSansPro-Regular.ttf'),
+            font_size)
+        d = ImageDraw.Draw(image)
+        textsize = d.textsize(predicted_class, font=font)
+        x = int(font_size * 0.5)
+        y = int(font_size * 0.25)
+        x_offset = x
+        y_offset = y
+        rect_position = (x, y, x + textsize[0] + x_offset * 2,
+                         y + textsize[1] + y_offset * 2)
+        d.rectangle(rect_position, fill=(30, 30, 30))
+        d.text((x + x_offset, y + y_offset),
+               predicted_class,
+               font=font,
+               fill=(235, 235, 235))
+        image.save('tmp/image_{:06}_pred.jpg'.format(frame_num))
 
 
 if __name__ == '__main__':
@@ -107,12 +111,23 @@ if __name__ == '__main__':
         fps = get_fps(video_path, 'tmp')
 
         since = time.time()
-        NUM_WORKERS = multiprocessing.cpu_count() * 2
+        num_workers = multiprocessing.cpu_count()
         for unit_class_num in tqdm(range(len(unit_classes))):
-            for frame_num in tqdm(
-                    range(unit_segments[unit_class_num][0],
-                          unit_segments[unit_class_num][1] + 1)):
-                generate_result_image(frame_num, unit_class_num)
+            frame_nums = range(unit_segments[unit_class_num][0],
+                               unit_segments[unit_class_num][1] + 1)
+            # split frame numbers into multiple sub-arrays to process them in parallel
+            frame_nums_list = [
+                list(i) for i in np.array_split(frame_nums, num_workers)
+            ]
+            unit_predicted_class = unit_classes[unit_class_num]
+
+            # overlay predicted class name on images in parallel by multiprocessing
+            pool = multiprocessing.Pool(num_workers)
+            pool.starmap(generate_result_images,
+                         zip(frame_nums_list, repeat(unit_predicted_class)))
+            pool.close()
+            pool.join()
+
         time_elapsed = time.time() - since
         print('Generating images complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60))
