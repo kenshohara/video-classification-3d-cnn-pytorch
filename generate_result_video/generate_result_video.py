@@ -4,6 +4,10 @@ import json
 import subprocess
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+from tqdm import tqdm
+import time
+import multiprocessing
+from itertools import repeat
 
 
 def get_fps(video_file_path, frames_directory_path):
@@ -22,6 +26,32 @@ def get_fps(video_file_path, frames_directory_path):
     n_frames = len(os.listdir(frames_directory_path))
     fps = round(n_frames / total_sec, 2)
     return fps
+
+
+def generate_result_images(frame_nums, predicted_class):
+    for frame_num in frame_nums:
+        image = Image.open(
+            'tmp/image_{:06}.jpg'.format(frame_num)).convert('RGB')
+        min_length = min(image.size)
+        font_size = int(min_length * 0.05)
+        font = ImageFont.truetype(
+            os.path.join(
+                os.path.dirname(__file__), 'SourceSansPro-Regular.ttf'),
+            font_size)
+        d = ImageDraw.Draw(image)
+        textsize = d.textsize(predicted_class, font=font)
+        x = int(font_size * 0.5)
+        y = int(font_size * 0.25)
+        x_offset = x
+        y_offset = y
+        rect_position = (x, y, x + textsize[0] + x_offset * 2,
+                         y + textsize[1] + y_offset * 2)
+        d.rectangle(rect_position, fill=(30, 30, 30))
+        d.text((x + x_offset, y + y_offset),
+               predicted_class,
+               font=font,
+               fill=(235, 235, 235))
+        image.save('tmp/image_{:06}_pred.jpg'.format(frame_num))
 
 
 if __name__ == '__main__':
@@ -45,6 +75,7 @@ if __name__ == '__main__':
         video_path = os.path.join(video_root_path, results[index]['video'])
         print(video_path)
 
+        #execute per video
         clips = results[index]['clips']
         unit_classes = []
         unit_segments = []
@@ -66,34 +97,45 @@ if __name__ == '__main__':
             subprocess.call('rm -rf tmp', shell=True)
         subprocess.call('mkdir tmp', shell=True)
 
-        subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(video_path), shell=True)
+        since = time.time()
+        subprocess.call('ffmpeg -i {} tmp/image_%06d.jpg'.format(video_path), shell=True)
+        time_elapsed = time.time() - since
+        print('Extracting images complete in {:.0f}m {:.0f}s'.format(
+            time_elapsed // 60, time_elapsed % 60))
 
         fps = get_fps(video_path, 'tmp')
 
-        for i in range(len(unit_classes)):
-            for j in range(unit_segments[i][0], unit_segments[i][1] + 1):
-                image = Image.open('tmp/image_{:05}.jpg'.format(j)).convert('RGB')
-                min_length = min(image.size)
-                font_size = int(min_length * 0.05)
-                font = ImageFont.truetype(os.path.join(os.path.dirname(__file__),
-                                                       'SourceSansPro-Regular.ttf'),
-                                          font_size)
-                d = ImageDraw.Draw(image)
-                textsize = d.textsize(unit_classes[i], font=font)
-                x = int(font_size * 0.5)
-                y = int(font_size * 0.25)
-                x_offset = x
-                y_offset = y
-                rect_position = (x, y, x + textsize[0] + x_offset * 2,
-                                 y + textsize[1] + y_offset * 2)
-                d.rectangle(rect_position, fill=(30, 30, 30))
-                d.text((x + x_offset, y + y_offset), unit_classes[i],
-                       font=font, fill=(235, 235, 235))
-                image.save('tmp/image_{:05}_pred.jpg'.format(j))
+        since = time.time()
+        num_workers = multiprocessing.cpu_count()
+        for unit_class_num in tqdm(range(len(unit_classes))):
+            frame_nums = range(unit_segments[unit_class_num][0],
+                               unit_segments[unit_class_num][1] + 1)
+            # split frame numbers into multiple sub-arrays to process them in parallel
+            frame_nums_list = [
+                list(i) for i in np.array_split(frame_nums, num_workers)
+            ]
+            unit_predicted_class = unit_classes[unit_class_num]
 
-        dst_file_path = os.path.join(dst_directory_path, video_path.split('/')[-1])
-        subprocess.call('ffmpeg -y -r {} -i tmp/image_%05d_pred.jpg -b:v 1000k {}'.format(fps, dst_file_path),
+            # overlay predicted class name on images in parallel by multiprocessing
+            pool = multiprocessing.Pool(num_workers)
+            pool.starmap(generate_result_images,
+                         zip(frame_nums_list, repeat(unit_predicted_class)))
+            pool.close()
+            pool.join()
+
+        time_elapsed = time.time() - since
+        print('Generating images complete in {:.0f}m {:.0f}s'.format(
+            time_elapsed // 60, time_elapsed % 60))
+
+        dst_file_path = os.path.join(dst_directory_path,
+                                     video_path.split('/')[-1])
+
+        since = time.time()
+        subprocess.call('ffmpeg -y -r {} -i tmp/image_%06d_pred.jpg -b:v 1000k {}'.format(fps, dst_file_path),
                         shell=True)
+        time_elapsed = time.time() - since
+        print('Creating video from images complete in {:.0f}m {:.0f}s'.format(
+            time_elapsed // 60, time_elapsed % 60))
 
         if os.path.exists('tmp'):
             subprocess.call('rm -rf tmp', shell=True)

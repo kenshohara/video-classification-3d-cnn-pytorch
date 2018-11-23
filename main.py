@@ -10,8 +10,11 @@ from opts import parse_opts
 from model import generate_model
 from mean import get_mean
 from classify import classify_video
+from tqdm import tqdm
+from pathlib import Path
+import shutil
 
-if __name__=="__main__":
+if __name__ == "__main__":
     opt = parse_opts()
     opt.mean = get_mean()
     opt.arch = '{}-{}'.format(opt.model_name, opt.model_depth)
@@ -42,27 +45,27 @@ if __name__=="__main__":
     if opt.verbose:
         ffmpeg_loglevel = 'info'
 
-    if os.path.exists('tmp'):
-        subprocess.call('rm -rf tmp', shell=True)
+    tmp_path = Path('tmp')
+    if tmp_path.exists():
+        shutil.rmtree(tmp_path)
 
     outputs = []
     for input_file in input_files:
         video_path = os.path.join(opt.video_root, input_file)
         if os.path.exists(video_path):
             print(video_path)
-            subprocess.call('mkdir tmp', shell=True)
-            subprocess.call('ffmpeg -i {} tmp/image_%05d.jpg'.format(video_path),
+            tmp_path.mkdir()
+            subprocess.call('ffmpeg -i {} tmp/image_%06d.jpg'.format(video_path),
                             shell=True)
 
             result = classify_video('tmp', input_file, class_names, model, opt)
             outputs.append(result)
 
-            subprocess.call('rm -rf tmp', shell=True)
+            shutil.rmtree(tmp_path)
         else:
             print('{} does not exist'.format(input_file))
 
-    if os.path.exists('tmp'):
-        subprocess.call('rm -rf tmp', shell=True)
-
+    if tmp_path.exists():
+        shutil.rmtree(tmp_path)
     with open(opt.output, 'w') as f:
         json.dump(outputs, f)

@@ -4,6 +4,8 @@ from torch.autograd import Variable
 from dataset import Video
 from spatial_transforms import (Compose, Normalize, Scale, CenterCrop, ToTensor)
 from temporal_transforms import LoopPadding
+from tqdm import tqdm
+
 
 def classify_video(video_dir, video_name, class_names, model, opt):
     assert opt.mode in ['score', 'feature']
@@ -21,13 +23,14 @@ def classify_video(video_dir, video_name, class_names, model, opt):
 
     video_outputs = []
     video_segments = []
-    for i, (inputs, segments) in enumerate(data_loader):
+    print('start inference')
+    for i, (inputs, segments) in enumerate(tqdm(data_loader)):
         inputs = Variable(inputs, volatile=True)
         outputs = model(inputs)
 
         video_outputs.append(outputs.cpu().data)
         video_segments.append(segments)
-
+    print('end inference')
     video_outputs = torch.cat(video_outputs)
     video_segments = torch.cat(video_segments)
     results = {
