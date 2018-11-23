@@ -19,7 +19,7 @@ if __name__ == "__main__":
     opt.mean = get_mean()
     opt.arch = '{}-{}'.format(opt.model_name, opt.model_depth)
     opt.sample_size = 112
-    opt.sample_duration = 64
+    opt.sample_duration = 16
     opt.n_classes = 400
 
     model = generate_model(opt)
@@ -55,9 +55,8 @@ if __name__ == "__main__":
         if os.path.exists(video_path):
             print(video_path)
             tmp_path.mkdir()
-            subprocess.call(
-                'ffmpeg -i {} tmp/image_%06d.jpg'.format(video_path),
-                shell=True)
+            subprocess.call('ffmpeg -i {} tmp/image_%06d.jpg'.format(video_path),
+                            shell=True)
 
             result = classify_video('tmp', input_file, class_names, model, opt)
             outputs.append(result)
@@ -66,5 +65,7 @@ if __name__ == "__main__":
         else:
             print('{} does not exist'.format(input_file))
 
+    if tmp_path.exists():
+        shutil.rmtree(tmp_path)
     with open(opt.output, 'w') as f:
         json.dump(outputs, f)

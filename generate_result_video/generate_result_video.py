@@ -11,11 +11,8 @@ from itertools import repeat
 
 
 def get_fps(video_file_path, frames_directory_path):
-    p = subprocess.Popen(
-        'ffprobe {}'.format(video_file_path),
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE)
+    p = subprocess.Popen('ffprobe {}'.format(video_file_path),
+                         shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     _, res = p.communicate()
     res = res.decode('utf-8')
 
@@ -93,17 +90,15 @@ if __name__ == '__main__':
                 scores += np.array(clips[i]['scores'])
             scores /= n_elements
             unit_classes.append(class_names[np.argmax(scores)])
-            unit_segments.append([
-                clips[i]['segment'][0], clips[i + n_elements - 1]['segment'][1]
-            ])
+            unit_segments.append([clips[i]['segment'][0],
+                                  clips[i + n_elements - 1]['segment'][1]])
 
         if os.path.exists('tmp'):
             subprocess.call('rm -rf tmp', shell=True)
         subprocess.call('mkdir tmp', shell=True)
 
         since = time.time()
-        subprocess.call(
-            'ffmpeg -i {} tmp/image_%06d.jpg'.format(video_path), shell=True)
+        subprocess.call('ffmpeg -i {} tmp/image_%06d.jpg'.format(video_path), shell=True)
         time_elapsed = time.time() - since
         print('Extracting images complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60))
@@ -136,10 +131,8 @@ if __name__ == '__main__':
                                      video_path.split('/')[-1])
 
         since = time.time()
-        subprocess.call(
-            'ffmpeg -y -r {} -i tmp/image_%06d_pred.jpg -b:v 1000k {}'.format(
-                fps, dst_file_path),
-            shell=True)
+        subprocess.call('ffmpeg -y -r {} -i tmp/image_%06d_pred.jpg -b:v 1000k {}'.format(fps, dst_file_path),
+                        shell=True)
         time_elapsed = time.time() - since
         print('Creating video from images complete in {:.0f}m {:.0f}s'.format(
             time_elapsed // 60, time_elapsed % 60))

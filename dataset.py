@@ -103,12 +103,9 @@ def make_dataset(video_path, sample_duration):
 
 
 class Video(data.Dataset):
-    def __init__(self,
-                 video_path,
-                 spatial_transform=None,
-                 temporal_transform=None,
-                 sample_duration=16,
-                 get_loader=get_default_video_loader):
+    def __init__(self, video_path,
+                 spatial_transform=None, temporal_transform=None,
+                 sample_duration=16, get_loader=get_default_video_loader):
         self.data = make_dataset(video_path, sample_duration)
 
         self.spatial_transform = spatial_transform
